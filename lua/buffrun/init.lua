@@ -5,7 +5,7 @@ function M.run_buffrun_command()
   local buf = api.nvim_get_current_buf()
   local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
 
-  local pattern = "^buffrun(<c>?): "
+  local pattern = "^buffrun<?c?o?>?: "
   local pattern_pipe = pattern .. "|"
 
   for _, line in ipairs(lines) do
@@ -14,11 +14,12 @@ function M.run_buffrun_command()
       if line:match("<c>") then
         confirm = true
       end
+      local autorun = false
+      if line:match("<o>") then
+        autorun = true
+      end
       if confirm then
         local answer = vim.fn.input("Do you want to buffrun? [y/N]: ")
-        -- clear message
-        vim.o.statusline = ""
-        vim.cmd('messages clear') 
         if answer ~= "y" then
           return
         end

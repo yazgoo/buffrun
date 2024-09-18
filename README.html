@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<meta name="generator" content="md2html">
+<meta charset="UTF-8">
+</head>
+<body>
+<!--
+-->
+<p>have you ever whiched to apply a command within vim easily ?</p>
+<p>Buffrun goal is to provide a way to do it, by adding a tag in current file.</p>
+<h1>Usage with a file</h1>
+<p>If you want to run a command on the file you are currently editing, just use:</p>
+<pre><code> buffrun: your_shell_command ${file_path}
+</code></pre>
+<p><code>${file_path}</code> will be replaced with current file_path.</p>
+<p>For example, this convert current file to markdown and displays the result in firefox:</p>
+<pre><code> buffrun: grep -Ev '^buffrun' ${file_path} | md2html -o README.html &amp;&amp; firefox README.html
+</code></pre>
+<p>Just run <code>:Buffrun</code> to apply the operation.</p>
+<p>Note that we excluded the line with <code>^buffrun:</code> using <code>grep -v</code>.</p>
+<h1>Usage with a buffer</h1>
+<p>If instead of using the file, you want to directly apply the transform on a buffer, just start your line with a pipe.</p>
+<pre><code> buffrun: | your_shell_command
+</code></pre>
+<p>If we take previous example:</p>
+<pre><code> buffrun: | md2html -o README.html &amp;&amp; firefox README.html
+</code></pre>
+<p>In pipe format, you don't have to remove the <code>buffrun</code> keyword.</p>
+<h1>Additional options [WIP]</h1>
+<p>These are not yet implemented.</p>
+<p>You can also add options to change the behavior of buffrun, for exmaple, if you want to add a prompt before running the command, you can use:</p>
+<pre><code>buffrun&lt;c&gt;: your_shell_command ${file_path}
+</code></pre>
+<p>If you want to automatically run the command when the file is written, you can use:</p>
+<pre><code>buffrun&lt;o&gt;: your_shell_command ${file_path}
+</code></pre>
+<p>You can combine both options.</p>
+</body>
+</html>
