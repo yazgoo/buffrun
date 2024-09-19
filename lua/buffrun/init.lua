@@ -29,17 +29,25 @@ function M.buffrun_buffer(buf, line)
   local command = line:gsub(M.pattern_pipe, "")
   local quoted_lines = table.concat(escaped_lines, '\n')
   local pipe = io.popen("echo '" ..  quoted_lines .. "' | " .. command, "r")
+  print("\n")
   print(pipe:read("*a"))
   pipe:close()
 end
 
+
+function M.line_contains_option(line, option_char)
+  -- get the part between < > in line
+  local options = line:match("<(.-)>")
+  return options and options:find(option_char)
+end
+
 function M.check_confirm(line, buf)
   local confirm = false
-  if line:match("<c>") then
+  if M.line_contains_option(line, "c") then
     confirm = true
   end
   local confirm_once = false
-  if line:match("<C>") then
+  if M.line_contains_option(line, "C") then
     confirm_once = true
     if M.confirmed_buffers[buf] ~= nil then
       confirm = false
@@ -84,7 +92,7 @@ function M.load_auto_buffrun()
 
   for _, line in ipairs(lines) do
     if line:match(M.pattern) then
-      if line:match("<o>")
+      if M.line_contains_option(line, "o")
       then
         vim.cmd('autocmd! BufWritePost <buffer> BuffRun')
         print("Auto BuffRun enabled")
