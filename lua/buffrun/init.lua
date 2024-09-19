@@ -86,7 +86,7 @@ function M.load_auto_buffrun()
     if line:match(M.pattern) then
       if line:match("<o>")
       then
-        vim.cmd('autocmd BufWritePost <buffer> BuffRun')
+        vim.cmd('autocmd! BufWritePost <buffer> BuffRun')
         print("Auto BuffRun enabled")
       end
     end
