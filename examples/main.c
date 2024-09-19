@@ -1,5 +1,5 @@
 /*
-buffrun<C>: | gcc -x c -o main - && ./main
+buffrun<o>: | gcc -x c -o main - && ./main
 */
 
 #include <stdio.h>
