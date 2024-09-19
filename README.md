@@ -42,7 +42,7 @@ If we take previous example:
 
 In pipe format, you don't have to remove the `buffrun` keyword.
 
-# Additional options [WIP]
+# Additional options
 
 These are not yet implemented.
 
@@ -50,6 +50,20 @@ You can also add options to change the behavior of buffrun, for exmaple, if you 
 
 ```
 buffrun<c>: your_shell_command ${file_path}
+```
+
+If you want to prompt only the first time you run the buffer:
+
+```
+buffrun<C>: your_shell_command ${file_path}
+```
+
+# Additional options (not yet implemented)
+
+If you want to open buffrun output in its own window:
+
+```
+buffrun<w>: your_shell_command ${file_path}
 ```
 
 If you want to automatically run the command when the file is written, you can use:

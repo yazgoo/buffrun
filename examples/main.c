@@ -1,5 +1,5 @@
 /*
-buffrun<o>: gcc ${file_path} -o main && ./main
+buffrun<C>: | gcc -x c -o main - && ./main
 */
 
 #include <stdio.h>
