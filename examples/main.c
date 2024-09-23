@@ -1,5 +1,5 @@
 /*
-buffrun<Co>: | gcc -x c -o main - && ./main
+buffrun<Cow>: | gcc -x c -o main - && ./main
 */
 
 #include <stdio.h>

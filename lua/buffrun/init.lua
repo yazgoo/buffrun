@@ -1,4 +1,4 @@
-local base_pattern = "^buffrun<?c?C?o?>?: "
+local base_pattern = "^buffrun<?[wcoC]*>?: "
 
 local M = {
 
@@ -16,6 +16,21 @@ function M.buffrun_file(buf, file_path, line)
   vim.cmd('! ' .. command)
 end
 
+function M.open_output_window(output)
+  -- print the output in a floating window
+  local bufnr = api.nvim_create_buf(false, true)
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
+  local win = api.nvim_open_win(bufnr, true, {
+      relative = "editor",
+      width = 80,
+      height = 10,
+      row = 10,
+      col = 10,
+      style = "minimal"
+    })
+  api.nvim_set_current_win(win)
+end
+
 function M.buffrun_buffer(buf, line)
   local lines2 = api.nvim_buf_get_lines(buf, 0, -1, false)
   local escaped_lines = {}
@@ -29,8 +44,13 @@ function M.buffrun_buffer(buf, line)
   local command = line:gsub(M.pattern_pipe, "")
   local quoted_lines = table.concat(escaped_lines, '\n')
   local pipe = io.popen("echo '" ..  quoted_lines .. "' | " .. command, "r")
-  print("\n")
-  print(pipe:read("*a"))
+  local output = pipe:read("*a")
+  if M.line_contains_option(line, "w") then
+    M.open_output_window(output)
+  else
+    print("\n")
+    print(output)
+  end
   pipe:close()
 end
 

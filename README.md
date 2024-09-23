@@ -64,9 +64,6 @@ If you want to automatically run the command when the file is written, you can u
 buffrun<o>: your_shell_command ${file_path}
 ```
 
-
-# Additional options (not yet implemented)
-
 If you want to open buffrun output in its own window:
 
 ```
