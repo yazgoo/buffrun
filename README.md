@@ -69,3 +69,9 @@ If you want to open buffrun output in its own window:
 ```
 buffrun<w>: your_shell_command ${file_path}
 ```
+
+If you want buffrun output only in case of failure (silent mode)
+
+```
+buffrun<s>: your_shell_command ${file_path}
+```

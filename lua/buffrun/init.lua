@@ -1,4 +1,4 @@
-local base_pattern = "^buffrun<?[wcoC]*>?: "
+local base_pattern = "^buffrun<?[wcoCs]*>?: "
 
 local M = {
 
@@ -10,10 +10,54 @@ local M = {
 
 local api = vim.api
 
+function M.buffrun_run_and_output(line, full_command)
+  local stdout_data = {}
+  local stderr_data = {}
+
+  -- Run the command asynchronously and capture stdout, stderr, and exit code
+  vim.fn.jobstart(full_command, {
+    stdout_buffered = true,  -- Buffer stdout
+    stderr_buffered = true,  -- Buffer stderr
+    on_stdout = function(_, data, _)
+      if data then
+        for _, line in ipairs(data) do
+          table.insert(stdout_data, line)  -- Collect stdout lines
+        end
+      end
+    end,
+    on_stderr = function(_, data, _)
+      if data then
+        for _, line in ipairs(data) do
+          table.insert(stderr_data, line)  -- Collect stderr lines
+        end
+      end
+    end,
+      on_exit = function(_, exit_code, _)
+        local output = ""
+        if #stdout_data > 0 then
+          output = table.concat(stdout_data, "\n")
+        end
+        if #stderr_data > 0 then
+          output = output .. "\n" .. table.concat(stderr_data, "\n")
+        end
+        if M.line_contains_option(line, "s") and exit_code == 0 then
+          print("buffrun successful")
+        else
+          if M.line_contains_option(line, "w") then
+            M.open_output_window(output)
+          else
+            print("\n")
+            print(output)
+          end
+        end
+      end,
+    })
+end
+
 function M.buffrun_file(buf, file_path, line)
   local file_path = api.nvim_buf_get_name(buf)
   local command = line:gsub(M.pattern, ""):gsub("${file_path}", file_path)
-  vim.cmd('! ' .. command)
+  M.buffrun_run_and_output(line, command)
 end
 
 function M.open_output_window(output)
@@ -21,12 +65,13 @@ function M.open_output_window(output)
   local bufnr = api.nvim_create_buf(false, true)
   api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
   local win = api.nvim_open_win(bufnr, true, {
+      title = "BuffRun Output",
       relative = "editor",
       width = 80,
       height = 10,
       row = 10,
       col = 10,
-      style = "minimal"
+      border = "rounded"
     })
   api.nvim_set_current_win(win)
 end
@@ -43,21 +88,14 @@ function M.buffrun_buffer(buf, line)
 
   local command = line:gsub(M.pattern_pipe, "")
   local quoted_lines = table.concat(escaped_lines, '\n')
-  local pipe = io.popen("echo '" ..  quoted_lines .. "' | " .. command, "r")
-  local output = pipe:read("*a")
-  if M.line_contains_option(line, "w") then
-    M.open_output_window(output)
-  else
-    print("\n")
-    print(output)
-  end
-  pipe:close()
+  local full_command = "echo '" ..  quoted_lines .. "' | " .. command
+  M.buffrun_run_and_output(line, full_command)
 end
 
 
 function M.line_contains_option(line, option_char)
   -- get the part between < > in line
-  local options = line:match("<(.-)>")
+  local options = line:match("<(.*)>")
   return options and options:find(option_char)
 end
 
