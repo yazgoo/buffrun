@@ -63,14 +63,17 @@ end
 function M.open_output_window(output)
   -- print the output in a floating window
   local bufnr = api.nvim_create_buf(false, true)
+  local win = api.nvim_get_current_win()
   api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
+  local w = api.nvim_win_get_width(win)
+  local h = api.nvim_win_get_height(win)
   local win = api.nvim_open_win(bufnr, true, {
       title = "BuffRun Output",
       relative = "editor",
-      width = 80,
-      height = 10,
-      row = 10,
-      col = 10,
+      width = w - 4,
+      height = h - 4,
+      row = 2,
+      col = 2,
       border = "rounded"
     })
   api.nvim_set_current_win(win)
@@ -99,31 +102,28 @@ function M.line_contains_option(line, option_char)
   return options and options:find(option_char)
 end
 
-function M.check_confirm(line, buf)
-  local confirm = false
-  if M.line_contains_option(line, "c") then
-    confirm = true
-  end
-  local confirm_once = false
-  if M.line_contains_option(line, "C") then
-    confirm_once = true
-    if M.confirmed_buffers[buf] ~= nil then
-      confirm = false
-    else
-      confirm = true
-    end
-  end
-  if confirm then
+function M.prompt_for_confirmation(line, buf, should_confirm_once)
     local answer = vim.fn.input("Do you want to buffrun? [y/N]: ")
     if answer ~= "y" then
       return false
     else
-      if confirm_once then
-        M.confirmed_buffers[buf] = true
+      if should_confirm_once then
+        M.confirmed_buffers[buf] = line
       end
     end
+    return true
+end
+
+function M.check_confirm(line, buf)
+  local should_always_confirm = M.line_contains_option(line, "c")
+  local should_confirm_once = M.line_contains_option(line, "C")
+
+  if should_always_confirm or M.confirmed_buffers[buf] ~= line
+  then
+    return M.prompt_for_confirmation(line, buf, should_confirm_once)
+  else
+    return true
   end
-  return true
 end
 
 function M.run_buffrun_command()
