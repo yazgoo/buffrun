@@ -43,11 +43,12 @@ function M.buffrun_run_and_output(line, full_command)
         if M.line_contains_option(line, "s") and exit_code == 0 then
           print("buffrun successful")
         else
+          str_out = "buffrun exit code " .. exit_code .. "\n\n" .. output
           if M.line_contains_option(line, "w") then
-            M.open_output_window(output)
+            M.open_output_window(str_out)
           else
             print("\n")
-            print(output)
+            print(str_out)
           end
         end
       end,
@@ -60,17 +61,17 @@ function M.buffrun_file(buf, file_path, line)
   M.buffrun_run_and_output(line, command)
 end
 
-function M.open_output_window(output)
+function M.open_output_window(str_out)
   -- print the output in a floating window
   local bufnr = api.nvim_create_buf(false, true)
   local win = api.nvim_get_current_win()
-  api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(output, "\n"))
-  local w = api.nvim_win_get_width(win)
-  local h = api.nvim_win_get_height(win)
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(str_out, "\n"))
+  local w = api.nvim_get_option("columns")
+  local h = api.nvim_get_option("lines")
   local win = api.nvim_open_win(bufnr, true, {
       title = "BuffRun Output",
       relative = "editor",
-      width = w - 4,
+      width = w - 6,
       height = h - 4,
       row = 2,
       col = 2,
@@ -91,7 +92,7 @@ function M.buffrun_buffer(buf, line)
 
   local command = line:gsub(M.pattern_pipe, "")
   local quoted_lines = table.concat(escaped_lines, '\n')
-  local full_command = "echo '" ..  quoted_lines .. "' | " .. command
+  local full_command = "(" .. command .. ") <<EOF\n" .. quoted_lines .. "\nEOF"
   M.buffrun_run_and_output(line, full_command)
 end
 
@@ -166,11 +167,17 @@ function M.reload_plugin()
     return r
 end
 
-function M.setup()
+function M.setup(config)
   local api = vim.api
   api.nvim_create_user_command('BuffRun', M.run_buffrun_command, {})
   api.nvim_create_user_command('ReloadBuffrun', M.reload_plugin, {})
-  api.nvim_create_user_command('AutoBuffRun', M.load_auto_buffrun, {})
+  if config and config.auto_buffrun == true then
+    vim.api.nvim_create_augroup("BuffRunAuGroup", { clear = true })
+    vim.api.nvim_create_autocmd("BufReadPost", {
+        group = "BuffRunAuGroup",
+        callback = M.load_auto_buffrun,
+      })
+  end
 end
 
 return M
